@@ -4,7 +4,7 @@
  */
 
 #include <stdlib.h>
-// TODO: Any other files you need to include should go here
+#include <string.h>
 
 #include "rijndael.h"
 
@@ -96,6 +96,10 @@ void shift_rows(unsigned char *block) {
   block[11] = block[7];
   block[7] = block[3];
   block[3] = temp;
+}
+
+unsigned char xtime(unsigned char x) {
+    return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
 }
 
 void mix_single_column(unsigned char *a) {
