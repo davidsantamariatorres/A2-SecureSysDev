@@ -67,7 +67,7 @@ const unsigned char rcon[] = {0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
  * Operations used when encrypting a block
  */
 void sub_bytes(unsigned char *block) {
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < BLOCK_SIZE; i++) {
     block[i] = s_box[block[i]];
   }
 }
@@ -147,7 +147,7 @@ void add_round_key(unsigned char *block, unsigned char *round_key) {
  * vector, containing the 11 round keys one after the other
  */
 unsigned char *expand_key(unsigned char *cipher_key) {
-  int key_size = 16;    // 128-bit key
+  int key_size = BLOCK_SIZE;    // 128-bit key
   int num_rounds = 10;  // Number of rounds for AES-128
   int expanded_key_size =
       (num_rounds + 1) * key_size;  // Size of the expanded key
@@ -206,35 +206,37 @@ unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
     return NULL;
   }
 
+  memcpy(output, plaintext, BLOCK_SIZE);
+
   // Initial round
-  add_round_key(plaintext, expanded_key);
+  add_round_key(output, expanded_key);
 
   // Main rounds
   for (int round = 1; round <= 10; round++) {
     // SubBytes
-    sub_bytes(plaintext);
+    sub_bytes(output);
 
     // ShiftRows
-    shift_rows(plaintext);
+    shift_rows(output);
 
     // MixColumns (except for the last round)
     if (round < 10) {
-      mix_columns(plaintext);
+      mix_columns(output);
     }
 
     // AddRoundKey
-    add_round_key(plaintext, expanded_key + round * BLOCK_SIZE);
+    add_round_key(output, expanded_key + round * BLOCK_SIZE);
   }
 
   free(expanded_key);
-  memcpy(output, plaintext, BLOCK_SIZE);
+  
   return output;
 }
 
-/*unsigned char *aes_decrypt_block(unsigned char *ciphertext,
+unsigned char *aes_decrypt_block(unsigned char *ciphertext,
                                  unsigned char *key) {
   // TODO: Implement me!
   unsigned char *output =
       (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
   return output;
-}*/
+}
