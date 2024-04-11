@@ -3,10 +3,10 @@
  *       a brief description of this code.
  */
 
+#include "rijndael.h"
+
 #include <stdlib.h>
 #include <string.h>
-
-#include "rijndael.h"
 
 unsigned char s_box[256] = {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B,
@@ -99,7 +99,7 @@ void shift_rows(unsigned char *block) {
 }
 
 unsigned char xtime(unsigned char x) {
-    return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
+  return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
 }
 
 void mix_single_column(unsigned char *a) {
@@ -121,15 +121,50 @@ void mix_columns(unsigned char *block) {
  * Operations used when decrypting a block
  */
 void invert_sub_bytes(unsigned char *block) {
-  // TODO: Implement me!
+  for (int i = 0; i < 16; i++) {
+    block[i] = inv_s_box[block[i]];
+  }
 }
 
 void invert_shift_rows(unsigned char *block) {
-  // TODO: Implement me!
+  unsigned char temp;
+
+  // Shift first row (no change)
+
+  // Shift second row
+  temp = block[1];
+  block[1] = block[13];
+  block[13] = block[9];
+  block[9] = block[5];
+  block[5] = temp;
+
+  // Shift third row
+  temp = block[2];
+  block[2] = block[10];
+  block[10] = temp;
+  temp = block[6];
+  block[6] = block[14];
+  block[14] = temp;
+
+  // Shift fourth row
+  temp = block[3];
+  block[3] = block[7];
+  block[7] = block[11];
+  block[11] = block[15];
+  block[15] = temp;
 }
 
 void invert_mix_columns(unsigned char *block) {
-  // TODO: Implement me!
+  for (int i = 0; i < 4; i++) {
+    unsigned char u = xtime(xtime(block[i * 4] ^ block[i * 4 + 2]));
+    unsigned char v = xtime(xtime(block[i * 4 + 1] ^ block[i * 4 + 3]));
+    block[i * 4] ^= u;
+    block[i * 4 + 1] ^= v;
+    block[i * 4 + 2] ^= u;
+    block[i * 4 + 3] ^= v;
+  }
+
+  mix_columns(block);
 }
 
 /*
@@ -147,8 +182,8 @@ void add_round_key(unsigned char *block, unsigned char *round_key) {
  * vector, containing the 11 round keys one after the other
  */
 unsigned char *expand_key(unsigned char *cipher_key) {
-  int key_size = BLOCK_SIZE;    // 128-bit key
-  int num_rounds = 10;  // Number of rounds for AES-128
+  int key_size = BLOCK_SIZE;  // 128-bit key
+  int num_rounds = 10;        // Number of rounds for AES-128
   int expanded_key_size =
       (num_rounds + 1) * key_size;  // Size of the expanded key
 
@@ -229,14 +264,49 @@ unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
   }
 
   free(expanded_key);
-  
+
   return output;
 }
 
 unsigned char *aes_decrypt_block(unsigned char *ciphertext,
                                  unsigned char *key) {
-  // TODO: Implement me!
+  unsigned char *expanded_key = expand_key(key);
+  if (expanded_key == NULL) {
+    // Error: Memory allocation failed
+    return NULL;
+  }
+
   unsigned char *output =
       (unsigned char *)malloc(sizeof(unsigned char) * BLOCK_SIZE);
+  if (output == NULL) {
+    // Error: Memory allocation failed
+    free(expanded_key);
+    return NULL;
+  }
+
+  memcpy(output, ciphertext, BLOCK_SIZE);
+
+  // Initial round
+  add_round_key(output, expanded_key + 10 * BLOCK_SIZE);
+
+  // Main rounds
+  for (int round = 9; round >= 0; round--) {
+    // Inverse ShiftRows
+    invert_shift_rows(output);
+
+    // Inverse SubBytes
+    invert_sub_bytes(output);
+
+    // AddRoundKey
+    add_round_key(output, expanded_key + round * BLOCK_SIZE);
+
+    // Inverse MixColumns (except for the first round)
+    if (round > 0) {
+      invert_mix_columns(output);
+    }
+  }
+
+  free(expanded_key);
+
   return output;
 }
