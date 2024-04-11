@@ -2,9 +2,9 @@ import ctypes
 import os
 import sys
 
-module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'aes'))
-sys.path.append(module_path)
-from aes import encrypt, decrypt
+#module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'aes'))
+#sys.path.append(module_path)
+from ..aes import encrypt, decrypt
 
 # Load the shared object file
 rijndael = ctypes.CDLL('./rijndael.so')
@@ -37,10 +37,16 @@ def unit_test():
 
         # Encrypt with C implementation
         ciphertext_c = ctypes.create_string_buffer(BLOCK_SIZE)
-        rijndael.aes_encrypt_block(plaintext_buffer, key_buffer, ciphertext_c)
+        ciphertext_c = ctypes.string_at(
+            rijndael.aes_encrypt_block(plaintext_buffer, key_buffer), 
+            16
+        )
         # Decrypt with C implementation
         decryptedtext_c = ctypes.create_string_buffer(BLOCK_SIZE)
-        rijndael.aes_decrypt_block(ciphertext_c, key_buffer, decryptedtext_c)
+        decryptedtext_c = ctypes.string_at(
+            rijndael.aes_decrypt_block(ciphertext_c, key_buffer), 
+            16
+        )
 
         # Encrypt with Python implementation
         ciphertext_python = encrypt(key, plaintext)
