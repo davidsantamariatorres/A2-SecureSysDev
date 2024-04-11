@@ -1,6 +1,9 @@
 import ctypes
 import os
 import sys
+
+module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'aes'))
+sys.path.append(module_path)
 from aes import encrypt, decrypt
 
 # Load the shared object file
