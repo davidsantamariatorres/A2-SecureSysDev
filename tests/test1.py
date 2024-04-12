@@ -6,7 +6,9 @@ import sys
 #sys.path.append(module_path)
 #from ..aes import encrypt, decrypt
 #sys.path.insert(1, 'aes')
-from aes import encrypt, decrypt
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, parent_dir)
+from aes.aes import encrypt, decrypt
 
 
 # Load the shared object file
