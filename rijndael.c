@@ -1,6 +1,11 @@
 /*
- * TODO: Add your name and student number here, along with
- *       a brief description of this code.
+ * Name: David Santamaria Torres
+ * Student Number: D23124831
+ * Description: This code implements the AES algorithm for encrypting and
+ * decrypting data. It provides functions for substitution, shifting rows,
+ * mixing columns, adding round keys, and key expansion. The aes_encrypt_block
+ * function encrypts a block of plaintext, while aes_decrypt_block decrypts a
+ * block of ciphertext.
  */
 
 #include "rijndael.h"
@@ -8,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// S-box lookup table
 unsigned char s_box[256] = {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B,
     0xFE, 0xD7, 0xAB, 0x76, 0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0,
@@ -33,6 +39,7 @@ unsigned char s_box[256] = {
     0xB0, 0x54, 0xBB, 0x16,
 };
 
+// Inverse S-box lookup table
 unsigned char inv_s_box[256] = {
     0x52, 0x09, 0x6A, 0xD5, 0x30, 0x36, 0xA5, 0x38, 0xBF, 0x40, 0xA3, 0x9E,
     0x81, 0xF3, 0xD7, 0xFB, 0x7C, 0xE3, 0x39, 0x82, 0x9B, 0x2F, 0xFF, 0x87,
@@ -58,6 +65,7 @@ unsigned char inv_s_box[256] = {
     0x55, 0x21, 0x0C, 0x7D,
 };
 
+// Round constant lookup table
 const unsigned char rcon[] = {0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
                               0x80, 0x1B, 0x36, 0x6C, 0xD8, 0xAB, 0x4D, 0x9A,
                               0x2F, 0x5E, 0xBC, 0x63, 0xC6, 0x97, 0x35, 0x6A,
@@ -66,12 +74,17 @@ const unsigned char rcon[] = {0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40,
 /*
  * Operations used when encrypting a block
  */
+
+// This function performs the SubBytes operation by substituting each byte in
+// the block with its corresponding value
 void sub_bytes(unsigned char *block) {
   for (int i = 0; i < BLOCK_SIZE; i++) {
     block[i] = s_box[block[i]];
   }
 }
 
+// Function responsible for performing a row-wise shifting operation on the
+// input block
 void shift_rows(unsigned char *block) {
   unsigned char temp;
 
@@ -102,6 +115,7 @@ unsigned char xtime(unsigned char x) {
   return (x << 1) ^ ((x & 0x80) ? 0x1B : 0x00);
 }
 
+// This function performs the MixColumns operation on a single column
 void mix_single_column(unsigned char *a) {
   unsigned char t = a[0] ^ a[1] ^ a[2] ^ a[3];
   unsigned char u = a[0];
@@ -111,6 +125,8 @@ void mix_single_column(unsigned char *a) {
   a[3] ^= t ^ xtime(a[3] ^ u);
 }
 
+// This function performs the MixColumns operation on the entire AES state
+// matrix during encryption
 void mix_columns(unsigned char *block) {
   for (int i = 0; i < 4; i++) {
     mix_single_column(block + i * 4);
@@ -120,12 +136,18 @@ void mix_columns(unsigned char *block) {
 /*
  * Operations used when decrypting a block
  */
+
+// This function performs the inverse SubBytes operation by substituting each
+// byte in the block with its corresponding value from the inverse S-box lookup
+// table
 void invert_sub_bytes(unsigned char *block) {
   for (int i = 0; i < 16; i++) {
     block[i] = inv_s_box[block[i]];
   }
 }
 
+// This function performs the inverse ShiftRows operation by shifting the rows
+// of the block in the opposite direction
 void invert_shift_rows(unsigned char *block) {
   unsigned char temp;
 
@@ -154,6 +176,9 @@ void invert_shift_rows(unsigned char *block) {
   block[15] = temp;
 }
 
+// This function applies the inverse MixColumns operation to a block of bytes by
+// performing a series of calculations on each column of the block. It then
+// calls the mix_columns function to complete the inversion process.
 void invert_mix_columns(unsigned char *block) {
   for (int i = 0; i < 4; i++) {
     unsigned char u = xtime(xtime(block[i * 4] ^ block[i * 4 + 2]));
@@ -170,6 +195,10 @@ void invert_mix_columns(unsigned char *block) {
 /*
  * This operation is shared between encryption and decryption
  */
+
+// This function performs the AddRoundKey operation in the AES encryption
+// algorithm. It XORs each byte of the input block with the corresponding byte
+// of the round key.
 void add_round_key(unsigned char *block, unsigned char *round_key) {
   for (int i = 0; i < BLOCK_SIZE; i++) {
     block[i] ^= round_key[i];
@@ -230,6 +259,10 @@ unsigned char *expand_key(unsigned char *cipher_key) {
  * The implementations of the functions declared in the
  * header file should go here
  */
+
+// This function encrypts a single block of plaintext using the AES encryption
+// algorithm. It performs a series of operations on the input block, including
+// SubBytes, ShiftRows, MixColumns, and AddRoundKey, to produce the ciphertext.
 unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
   unsigned char *expanded_key = expand_key(key);
   unsigned char *output =
@@ -268,6 +301,9 @@ unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key) {
   return output;
 }
 
+// This function decrypts a single block of ciphertext using the AES decryption
+// algorithm. It performs a series of operations on the input block, including
+// Inverse ShiftRows, Inverse SubBytes, Inverse MixColumns, and AddRoundKey,
 unsigned char *aes_decrypt_block(unsigned char *ciphertext,
                                  unsigned char *key) {
   unsigned char *expanded_key = expand_key(key);

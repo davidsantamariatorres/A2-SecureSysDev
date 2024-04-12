@@ -1,6 +1,11 @@
 /*
- * TODO: Add your name and student number here, along with
- *       a brief description of this code.
+ * Name: David Santamaria Torres
+ * Student Number: D23124831
+ * Description: This is a header file for implementing the AES algorithm. It
+ * includes the two main function declarations related to encryption and
+ * decryption operations, which are the main entry points for encrypting and
+ * decrypting data. The header file also defines macros and constants related to
+ * block size and block access.
  */
 
 #ifndef RIJNDAEL_H
@@ -16,13 +21,5 @@
  */
 unsigned char *aes_encrypt_block(unsigned char *plaintext, unsigned char *key);
 unsigned char *aes_decrypt_block(unsigned char *ciphertext, unsigned char *key);
-void sub_bytes(unsigned char *block);
-void shift_rows(unsigned char *block);
-void mix_columns(unsigned char *block);
-void add_round_key(unsigned char *block, unsigned char *round_key);
-unsigned char *expand_key(unsigned char *cipher_key);
-void invert_sub_bytes(unsigned char *block);
-void invert_shift_rows(unsigned char *block);
-void invert_mix_columns(unsigned char *block);
 
 #endif

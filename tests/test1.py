@@ -2,12 +2,6 @@ import ctypes
 import os
 import sys
 
-#module_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'aes'))
-#sys.path.append(module_path)
-#from ..aes import encrypt, decrypt
-#sys.path.insert(1, 'aes')
-#parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-#sys.path.insert(0, parent_dir)
 from aes import encrypt, decrypt
 
 
@@ -31,7 +25,9 @@ def compare_blocks(block1, block2):
 
 # Main unit test function
 def unit_test():
-    for _ in range(3):
+    for i in range(3):
+        print("Test number " + str(i + 1) + ":")
+
         # Generate random key and plaintext
         key = generate_random_key()
         plaintext = generate_random_plaintext()
@@ -68,7 +64,7 @@ def unit_test():
             print("Error: Decrypted texts do not match!")
             sys.exit(1)
 
-    print("Unit test 1 passed!")
+    print("Unit test passed!")
 
 
 if __name__ == "__main__":
