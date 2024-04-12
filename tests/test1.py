@@ -6,7 +6,7 @@ import sys
 #sys.path.append(module_path)
 #from ..aes import encrypt, decrypt
 #sys.path.insert(1, 'aes')
-from aes import encrypt, decrypt
+from aes.aes import encrypt, decrypt
 
 
 # Load the shared object file
